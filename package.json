@@ -4,8 +4,10 @@
   "private": true,
   "dependencies": {
     "@mediapipe/pose": "^0.5.1675469404",
+    "@react-three/drei": "^9.68.3",
     "@react-three/fiber": "^8.13.0",
     "@tensorflow-models/pose-detection": "^2.1.0",
+    "@tensorflow/tfjs": "^4.5.0",
     "@tensorflow/tfjs-backend-webgl": "^4.5.0",
     "@tensorflow/tfjs-converter": "^4.5.0",
     "@tensorflow/tfjs-core": "^4.5.0",
