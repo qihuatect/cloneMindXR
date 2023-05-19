@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import logo from "./logo.svg";
 import "./App.css";
 import { Dimension, typeDimension } from "./helper";
-import Camera from "./webcam";
+import Camera from "./webcam/bodyExtraction";
 function App() {
   return (
     <div className="App">

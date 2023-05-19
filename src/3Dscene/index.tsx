@@ -1,7 +1,8 @@
-import React, { useRef, useState } from "react";
-import { Canvas, useFrame } from "@react-three/fiber";
+import React, { Suspense, useRef, useState } from "react";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { OrbitControls, Stars } from "@react-three/drei";
 import { Dimension, typeDimension } from "../helper";
+import * as THREE from "three";
 function Box(props: any) {
   const { getkp, _point } = props;
   // This reference will give us direct access to the mesh
@@ -14,7 +15,6 @@ function Box(props: any) {
   useFrame(() => {
     let kp = getkp();
     if (kp !== null) {
-      console.log(kp);
       try {
         let point = kp[0].keypoints[_point];
         let point3d = kp[0].keypoints3D[_point];
@@ -24,8 +24,6 @@ function Box(props: any) {
 
         let diff_x = Math.abs((point3d.x - _x) / _x);
         let diff_y = Math.abs((point3d.y - _y) / _y);
-
-        console.log(diff_x, diff_y);
 
         mesh.current.position.x = point3d.x * 5;
         mesh.current.position.y = point3d.y * -1 * 5;
@@ -42,9 +40,8 @@ function Box(props: any) {
 }
 
 export default function App(props: any) {
-  const { getkp } = props;
+  const { getkp, canvasRef, getMaskPoint } = props;
   const dimension = Dimension() as typeDimension;
-  const kp = getkp();
 
   return (
     <section
@@ -57,16 +54,73 @@ export default function App(props: any) {
       }}
     >
       <Canvas>
-        <ambientLight />
-        <pointLight position={[10, 10, 10]} />
+        <ambientLight intensity={0.5} color={"red"} />
 
-        <group position={[0, 0, 0]}>
+        {/* <group position={[0, 0, 0]}>
           {new Array(21).fill(0).map((_, i) => (
             <Box key={i} getkp={getkp} _point={i} />
           ))}
-        </group>
+        </group> */}
+        <Box2 position={[-6, 0, -10]} scale={10} />
+        <Box2 position={[6, -7, 5]} scale={3} />
+
+        <Suspense fallback={null}>
+          <PlaneMesh
+            getkp={getkp}
+            canvasRef={canvasRef}
+            getMaskPoint={getMaskPoint}
+          />
+        </Suspense>
+
         <OrbitControls />
       </Canvas>
     </section>
   );
 }
+
+function Box2(props: any) {
+  const ref = useRef<any>();
+
+  useFrame(() => {
+    ref.current.rotation.x += 0.01;
+    ref.current.rotation.y += 0.01;
+  });
+  return (
+    <mesh {...props} ref={ref}>
+      <boxGeometry args={[1, 1, 1]} />
+      <meshStandardMaterial />
+    </mesh>
+  );
+}
+
+const PlaneMesh = (props: any) => {
+  const { getkp, canvasRef, getMaskPoint } = props;
+  const dimension = Dimension() as typeDimension;
+  const kp = getkp();
+  const maskPoint = getMaskPoint();
+  const textureRef = useRef<any>();
+  const canvas = canvasRef.current as HTMLCanvasElement;
+  const ctx = canvas.getContext("2d") as unknown as CanvasRenderingContext2D;
+  canvas.width = dimension.width;
+  canvas.height = dimension.height;
+
+  useFrame(() => {
+    // update texture
+    textureRef.current.needsUpdate = true;
+  });
+
+  return (
+    <mesh position={[0, 0, -1]}>
+      <planeGeometry args={[dimension.width / 10, dimension.height / 10]} />
+      {canvasRef?.current !== null && (
+        <meshBasicMaterial transparent>
+          <canvasTexture
+            attach="map"
+            image={canvasRef.current}
+            ref={textureRef}
+          />
+        </meshBasicMaterial>
+      )}
+    </mesh>
+  );
+};
