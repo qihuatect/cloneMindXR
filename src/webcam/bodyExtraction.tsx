@@ -53,7 +53,7 @@ function Camera() {
 
     setInterval(() => {
       detectPose(segmenter, detector);
-    }, 80);
+    }, 100);
   };
 
   const detectPose = async (
@@ -79,39 +79,44 @@ function Camera() {
       let canvas = canvasRef.current as HTMLCanvasElement;
       let colored = bodyPix.toMask(
         segmentation,
+        { r: 0, g: 0, b: 0, a: 255 },
         { r: 255, g: 255, b: 255, a: 255 },
-        { r: 255, g: 0, b: 0, a: 0 },
         false,
-        [3, 4, 5, 6, 7, 8, 9, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
+        [
+          0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
+          20, 21, 22, 23,
+        ]
       );
 
-      let ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      bodyPix.drawMask(canvas, video, colored, 1, 0, false);
+
+      // let ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
+      // ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       // video draw to canvas
-      ctx.drawImage(video, 0, 0, dimension.width, dimension.height);
+      // ctx.drawImage(video, 0, 0, dimension.width, dimension.height);
 
-      let canvasImgData = ctx.getImageData(
-        0,
-        0,
-        dimension.width,
-        dimension.height
-      );
+      // let canvasImgData = ctx.getImageData(
+      //   0,
+      //   0,
+      //   dimension.width,
+      //   dimension.height
+      // );
 
-      for (let i = 0; i < colored.data.length; i += 4) {
-        if (
-          colored.data[i] === 255 &&
-          colored.data[i + 1] === 0 &&
-          colored.data[i + 2] === 0
-        ) {
-          canvasImgData.data[i + 3] = 0;
-          canvasImgData.data[i] = 0;
-          canvasImgData.data[i + 1] = 0;
-          canvasImgData.data[i + 2] = 0;
-        }
-      }
+      // for (let i = 0; i < colored.data.length; i += 4) {
+      //   if (
+      //     colored.data[i] === 0 &&
+      //     colored.data[i + 1] === 0 &&
+      //     colored.data[i + 2] === 0
+      //   ) {
+      //     canvasImgData.data[i + 3] = 0;
+      //     canvasImgData.data[i] = 0;
+      //     canvasImgData.data[i + 1] = 0;
+      //     canvasImgData.data[i + 2] = 0;
+      //   }
+      // }
 
-      ctx.putImageData(canvasImgData, 0, 0);
+      // ctx.putImageData(canvasImgData, 0, 0);
     }
   };
 
@@ -124,7 +129,8 @@ function Camera() {
   const videoConstraints = {
     height: dimension.height,
     width: dimension.width,
-    facingMode: "user",
+    // front camera
+    facingMode: "environment",
   };
 
   return (

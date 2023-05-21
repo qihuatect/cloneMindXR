@@ -53,16 +53,18 @@ export default function App(props: any) {
         left: 0,
       }}
     >
-      <Canvas>
-        <ambientLight intensity={0.5} color={"red"} />
+      {/* set renderer format rgbaformat*/}
 
+      <Canvas>
         {/* <group position={[0, 0, 0]}>
           {new Array(21).fill(0).map((_, i) => (
             <Box key={i} getkp={getkp} _point={i} />
           ))}
         </group> */}
-        <Box2 position={[-6, 0, -10]} scale={10} />
-        <Box2 position={[6, -7, 5]} scale={3} />
+
+        {/* add envlight */}
+        <ambientLight intensity={0.5} />
+        <ControlGl />
 
         <Suspense fallback={null}>
           <PlaneMesh
@@ -72,26 +74,33 @@ export default function App(props: any) {
           />
         </Suspense>
 
+        <Box2 />
         <OrbitControls />
       </Canvas>
     </section>
   );
 }
 
-function Box2(props: any) {
-  const ref = useRef<any>();
-
+const Box2 = (props: any) => {
+  const mesh = useRef<any>();
   useFrame(() => {
-    ref.current.rotation.x += 0.01;
-    ref.current.rotation.y += 0.01;
+    mesh.current.rotation.x = mesh.current.rotation.y += 0.01;
+
+    mesh.current.position.z = Math.sin(mesh.current.rotation.x) * 5 - 4;
   });
   return (
-    <mesh {...props} ref={ref}>
-      <boxGeometry args={[1, 1, 1]} />
-      <meshStandardMaterial />
+    <mesh position={[-5, -5, -10]} ref={mesh}>
+      <boxGeometry args={[10, 10, 10]} />
+      <meshStandardMaterial color={"red"} />
     </mesh>
   );
-}
+};
+
+const ControlGl = () => {
+  const { camera, gl } = useThree();
+
+  return null;
+};
 
 const PlaneMesh = (props: any) => {
   const { getkp, canvasRef, getMaskPoint } = props;
@@ -113,7 +122,7 @@ const PlaneMesh = (props: any) => {
     <mesh position={[0, 0, -1]}>
       <planeGeometry args={[dimension.width / 10, dimension.height / 10]} />
       {canvasRef?.current !== null && (
-        <meshBasicMaterial transparent>
+        <meshBasicMaterial alphaTest={0.5} transparent opacity={1}>
           <canvasTexture
             attach="map"
             image={canvasRef.current}
